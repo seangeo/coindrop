@@ -1,1 +1,14 @@
 .DS_Store
+
+# SvelteKit / Node
+node_modules/
+/build
+/.svelte-kit
+/package
+vite.config.ts.timestamp-*
+vite.config.js.timestamp-*
+
+# env
+.env
+.env.*
+!.env.example
