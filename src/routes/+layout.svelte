@@ -2,7 +2,8 @@
 	import '$lib/styles/arcade.css';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
-	import { currentUser } from '$lib/supabase/auth';
+	import { currentUser, signOut } from '$lib/supabase/auth';
+	import { leaveArcade } from '$lib/supabase/presence';
 	import { activeMatchId } from '$lib/supabase/match';
 	import Wordmark from '$lib/components/Wordmark.svelte';
 	import Avatar from '$lib/components/Avatar.svelte';
@@ -36,6 +37,12 @@
 	}
 
 	let gameHref = $derived($activeMatchId ? `/game/${$activeMatchId}` : null);
+
+	async function handleSignOut() {
+		await leaveArcade();
+		await signOut();
+		// currentUser is now null → the guard effect above sends us to /enter.
+	}
 </script>
 
 {#if onEnter}
@@ -57,12 +64,22 @@
 					{/if}
 				{/each}
 			</nav>
-			<div class="me-chip">
-				<Avatar sprite={me.sprite} status="lobby" size={30} />
-				<div style="line-height:1.2;">
-					<div class="mono handle">{me.name}</div>
-					<div class="record">{me.wins}W · {me.losses}L</div>
+			<div class="me-cluster">
+				<div class="me-chip">
+					<Avatar sprite={me.sprite} status="lobby" size={30} />
+					<div style="line-height:1.2;">
+						<div class="mono handle">{me.name}</div>
+						<div class="record">{me.wins}W · {me.losses}L</div>
+					</div>
 				</div>
+				<button
+					class="btn btn-ghost signout"
+					title="Sign out"
+					aria-label="Sign out"
+					onclick={handleSignOut}
+				>
+					⏻ EXIT
+				</button>
 			</div>
 		</header>
 		<main style="min-height:0;">
@@ -82,6 +99,26 @@
 <style>
 	.nav-item {
 		text-decoration: none;
+	}
+	.me-cluster {
+		margin-left: auto;
+		display: flex;
+		align-items: center;
+		gap: 10px;
+	}
+	/* override the global .me-chip { margin-left: auto } now that it's grouped */
+	.me-cluster .me-chip {
+		margin-left: 0;
+	}
+	.signout {
+		padding: 8px 12px;
+		font-size: 11px;
+		letter-spacing: 0.14em;
+	}
+	.signout:hover {
+		border-color: var(--danger);
+		color: var(--danger);
+		box-shadow: 0 0 18px -4px var(--danger-glow);
 	}
 	.nav-item.disabled {
 		opacity: 0.35;
